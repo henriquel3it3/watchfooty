@@ -1,115 +1,211 @@
-import Image from "next/image";
-import { Geist, Geist_Mono } from "next/font/google";
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
+import { useTranslation } from 'next-i18next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+function formatDate(date: Date) {
+  return date.toISOString().split('T')[0];
+}
 
 export default function Home() {
+  const { t } = useTranslation('common');
+
+  const [search, setSearch] = useState('');
+  const [teams, setTeams] = useState<any[]>([]);
+  const [fixtures, setFixtures] = useState<any[]>([]);
+  const [selectedTeam, setSelectedTeam] = useState<any | null>(null);
+
+  const today = new Date('2023-12-01');
+  const endOf2023 = new Date('2023-12-31');
+  const from = formatDate(today);
+  const to = formatDate(endOf2023);
+
+  useEffect(() => {
+    if (search.length < 3 || (selectedTeam && search === selectedTeam.name)) {
+      setTeams([]);
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      fetch(`/api/teams?search=${encodeURIComponent(search)}`)
+        .then(res => res.json())
+        .then(data => setTeams(data || []))
+        .catch(() => setTeams([]));
+    }, 500);
+
+    return () => clearTimeout(timeout);
+  }, [search, selectedTeam]);
+
+  const fetchFixtures = async (teamId: number) => {
+    try {
+      const res = await fetch(
+        `/api/fixtures?teamId=${teamId}&from=${from}&to=${to}`
+      );
+      const data = await res.json();
+      setFixtures(data || []);
+    } catch (error) {
+      setFixtures([]);
+    }
+  };
+
   return (
-    <div
-      className={`${geistSans.className} ${geistMono.className} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
-    >
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/pages/index.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <main className="relative w-full">
+      {/* Overlay escuro no background */}
+      <div className="absolute inset-0 z-0"></div>
+
+      <div className="z-10 container-position relative padding-bottom-l">
+        {/* LOGO */}
+        <div className="mb-8 w-full flex justify-center">
+          <Image
+            src="/logo.png"
+            alt="Logo"
+            width={512}
+            height={140}
+            priority
+            className="w-full max-w-[400px] object-contain"
+          />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+
+        <h1 className="text-2xl font-bold mb-6 text-center text-[#FFB300]">
+          {t('title')}
+        </h1>
+
+        {/* SEARCH INPUT */}
+        <div className="relative w-full max-w-lg mb-6 mx-auto">
+          {/* Left search icon */}
+          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+            <svg
+              className="w-5 h-5 text-[#FFB300]"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1110.5 3a7.5 7.5 0 016.15 13.65z"
+              />
+            </svg>
+          </div>
+
+          <input
+            type="text"
+            placeholder={t('search_placeholder')}
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            onFocus={() => {
+              if (fixtures.length > 0) {
+                setFixtures([]);
+                setSelectedTeam(null);
+              }
+            }}
+            className="w-full h-12 pl-10 pr-14 
+                       bg-[#123A6F]/90 text-white placeholder-gray-300 
+                       rounded-xl border border-[#0D2C54] focus:outline-none 
+                       focus:ring-2 focus:ring-[#FFB300] text-[15px]
+                       shadow-md transition duration-200"
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+          {/* Right button */}
+          <button
+            className="absolute top-1/2 right-2 -translate-y-1/2 w-8 h-8 
+                       bg-[#FFB300] rounded-full flex items-center justify-center 
+                       hover:bg-[#FF8F00] transition duration-200"
+          >
+            <svg
+              className="w-4 h-4 text-black"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.817-4.817A6 6 0 012 8z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+        </div>
+
+        {/* DROPDOWN RESULTS */}
+        {teams.length > 0 && (
+          <ul
+            className="bg-[#123A6F]/95 border border-[#0D2C54] rounded-xl shadow-lg 
+                       max-h-80 overflow-auto mx-auto w-full max-w-lg animate-fade-in"
+          >
+            {teams.map(team => (
+              <li
+                key={team.id}
+                className="p-3 hover:bg-[#0D2C54] cursor-pointer flex items-center gap-3 text-gray-100 transition"
+                onClick={() => {
+                  setSelectedTeam(team);
+                  setSearch(team.name);
+                  setTeams([]);
+                  fetchFixtures(team.id);
+                }}
+              >
+                <Image
+                  src={team.image_path}
+                  alt={team.name}
+                  width={28}
+                  height={28}
+                  className="rounded-full"
+                  unoptimized
+                />
+                <span className="text-[15px]">{team.name}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {/* FIXTURES */}
+        {selectedTeam && fixtures.length > 0 && (
+          <div className="bg-[#0D2C54]/90 p-5 rounded-xl max-w-lg mx-auto border border-[#FFB300]">
+            <h2 className="text-xl font-semibold mb-4 text-[#FFB300] text-center">
+              Próximos jogos do {selectedTeam.name}
+            </h2>
+            <ul className="space-y-4">
+              {fixtures.map(fixture => {
+                const home = fixture.participants.find(
+                  (p: any) => p.meta.location === 'home'
+                );
+                const away = fixture.participants.find(
+                  (p: any) => p.meta.location === 'away'
+                );
+                const venue = fixture.venue;
+                const tvs =
+                  fixture.tvstations?.map((tv: any) => tv.name).join(', ') ||
+                  'Transmissão por confirmar';
+
+                return (
+                  <li
+                    key={fixture.id}
+                    className="border border-[#FFB300] rounded-lg p-4 shadow-sm bg-[#123A6F]/95 text-gray-200 text-center transition duration-200"
+                  >
+                    <div className="font-bold text-white text-lg mb-2">
+                      {home?.name} vs {away?.name}
+                    </div>
+                    <div className="text-sm text-gray-300 leading-5">
+                      📅 {new Date(fixture.starting_at).toLocaleString()}
+                      <br />
+                      📺 {tvs}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+      </div>
+    </main>
   );
+}
+
+// Para carregar as traduções no lado do servidor:
+export async function getStaticProps({ locale }: any) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ['common'])),
+    },
+  };
 }

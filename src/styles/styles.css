@@ -1,0 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;900&display=swap');
+
+
+/* styles.css */
+body,
+html {
+    height: 100%;
+    margin: 0;
+    font-family: 'Montserrat', sans-serif;
+    color: #fff;
+}
+
+body {
+    background:
+        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+        url('/background.jpg');
+    background-size: cover;
+    background-position: center;
+    padding: 32px;
+    display: flex;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+    background-attachment: fixed;
+}
+
+.padding-bottom-l {
+    padding-bottom: 32px;
+}
