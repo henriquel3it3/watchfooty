@@ -1,9 +1,35 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { getFromCache, setToCache } from '@/lib/cache';
+
+// Simple in-memory rate limiter
+const RATE_LIMIT = 10; // Max of 10 requests for IP
+const WINDOW_MS = 60 * 1000; // Window of 1 minute
+const ipAccessMap = new Map<string, { count: number; timestamp: number }>();
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  // Allow only GET method
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+
+  // Limit rate by IP Address
+  const ip = req.headers['x-forwarded-for']?.toString().split(',')[0] || req.socket.remoteAddress || 'unknown';
+  const now = Date.now();
+  const ipData = ipAccessMap.get(ip);
+
+  if (ipData && now - ipData.timestamp < WINDOW_MS) {
+    if (ipData.count >= RATE_LIMIT) {
+      return res.status(429).json({ error: 'Too Many Requests' });
+    }
+    ipData.count += 1;
+    ipAccessMap.set(ip, ipData);
+  } else {
+    ipAccessMap.set(ip, { count: 1, timestamp: now });
+  }
+
   try {
     const { teamId } = req.query;
     const apiKey = process.env.APISPORTS_API_KEY;
@@ -20,6 +46,12 @@ export default async function handler(
     const to = '2023-02-01';
     const season = '2022';
 
+    const cacheKey = `fixtures:${teamId}:${season}:${from}:${to}`;
+    const cachedData = getFromCache(cacheKey);
+    if (cachedData) {
+      return res.status(200).json(cachedData);
+    }
+
     const url = `https://v3.football.api-sports.io/fixtures?team=${teamId}&season=${season}&from=${from}&to=${to}`;
 
     const response = await fetch(url, {
@@ -31,7 +63,10 @@ export default async function handler(
     const responseText = await response.text();
 
     if (!response.ok) {
-      return res.status(response.status).json({ error: 'Error loading the results!', details: responseText });
+      return res.status(response.status).json({
+        error: 'Error loading the results!',
+        details: responseText,
+      });
     }
 
     const json = JSON.parse(responseText);
@@ -63,6 +98,8 @@ export default async function handler(
     });
 
     const limitedFixtures = fixtures.slice(0, 3);
+
+    setToCache(cacheKey, limitedFixtures, 60 * 60 * 1000); // 1h
 
     res.status(200).json(limitedFixtures);
   } catch (error) {

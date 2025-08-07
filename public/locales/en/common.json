@@ -1,5 +1,6 @@
 {
   "title": "Search to know where your club plays!",
   "search_placeholder": "Search for the club here...",
-  "upcoming_matches": "Upcoming matches of {{team}}"
+  "upcoming_matches": "Upcoming matches of ",
+  "without_transmition_label": "Broadcast to be confirmed"
 }
