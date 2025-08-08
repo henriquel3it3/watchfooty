@@ -6,6 +6,7 @@ import Logo from '@/components/Logo';
 import SearchInput from '@/components/SearchInput';
 import TeamList from '@/components/TeamList';
 import FixturesList from '@/components/FixturesList';
+import InfoBanner from '@/components/InfoBanner';
 
 function formatDate(date: Date) {
   return date.toISOString().split('T')[0];
@@ -19,6 +20,7 @@ export default function Home() {
   const [teams, setTeams] = useState<any[]>([]);
   const [fixtures, setFixtures] = useState<any[]>([]);
   const [selectedTeam, setSelectedTeam] = useState<any | null>(null);
+  const [justSelected, setJustSelected] = useState(false);
 
   const today = new Date('2023-12-01');
   const endOf2023 = new Date('2023-12-31');
@@ -33,7 +35,14 @@ export default function Home() {
   }, [search]);
 
   useEffect(() => {
-    if (debouncedSearch.length < 3 || (selectedTeam && debouncedSearch === selectedTeam.name)) {
+    if (justSelected) {
+      setJustSelected(false); // limpa após o ciclo
+      return;
+    }
+
+    if (selectedTeam && debouncedSearch === selectedTeam.name) return;
+
+    if (debouncedSearch.length < 3) {
       setTeams([]);
       return;
     }
@@ -42,7 +51,7 @@ export default function Home() {
       .then(res => res.json())
       .then(data => setTeams(data || []))
       .catch(() => setTeams([]));
-  }, [debouncedSearch, selectedTeam]);
+  }, [debouncedSearch, selectedTeam, justSelected]);
 
   const fetchFixtures = async (teamId: number) => {
     try {
@@ -76,18 +85,23 @@ export default function Home() {
           }}
         />
 
-        {teams.length > 0 && (
+        {!selectedTeam && teams.length === 0 && (
+          <InfoBanner />
+        )}
+
+        {teams.length > 0 && fixtures.length === 0 && (
           <TeamList
             teams={teams}
-            onSelect={(team) => {
+            onSelectTeam={(team) => {
               setSelectedTeam(team);
-              setSearch(team.name);
-              setTeams([]);
+              if (search !== team.name) {
+                setSearch(team.name);
+              }
+              setTeams([]); // oculta o TeamList
               fetchFixtures(team.id);
             }}
           />
         )}
-
         {selectedTeam && fixtures.length > 0 && (
           <FixturesList fixtures={fixtures} teamName={selectedTeam.name} />
         )}
