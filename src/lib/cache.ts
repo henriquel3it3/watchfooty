@@ -3,7 +3,7 @@ type CacheEntry<T> = {
   expiresAt: number;
 };
 
-const cache = new Map<string, CacheEntry<any>>();
+const cache = new Map<string, CacheEntry<unknown>>();
 
 export function getFromCache<T>(key: string): T | null {
   const entry = cache.get(key);
@@ -12,7 +12,7 @@ export function getFromCache<T>(key: string): T | null {
     cache.delete(key);
     return null;
   }
-  return entry.data;
+  return entry.data as T;
 }
 
 export function setToCache<T>(key: string, data: T, ttlSeconds: number) {

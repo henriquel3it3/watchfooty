@@ -1,10 +1,5 @@
 import Image from 'next/image';
-
-interface Team {
-  id: number;
-  name: string;
-  image_path: string;
-}
+import type { Team } from '@/types/team';
 
 interface TeamListProps {
   teams: Team[];
@@ -21,7 +16,7 @@ export default function TeamList({ teams, onSelectTeam }: TeamListProps) {
         <li
           key={team.id}
           className="p-3 hover:bg-[#0D2C54] cursor-pointer flex items-center gap-3 text-gray-100 transition"
-          onClick={() => onSelectTeam(team)} // ✅ AQUI
+          onClick={() => onSelectTeam(team)}
         >
           <Image
             src={team.image_path}

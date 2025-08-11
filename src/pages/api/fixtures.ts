@@ -1,22 +1,38 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getFromCache, setToCache } from '@/lib/cache';
 
-// Simple in-memory rate limiter
-const RATE_LIMIT = 10; // Max of 10 requests for IP
-const WINDOW_MS = 60 * 1000; // Window of 1 minute
+// Tipagem para a resposta da API
+type FixtureApiResponse = {
+  fixture: {
+    id: number;
+    date: string;
+    venue: {
+      name: string;
+      city: string;
+    };
+  };
+  teams: {
+    home: { name: string };
+    away: { name: string };
+  };
+};
+
+const RATE_LIMIT = 10; // Max 10 requests por IP
+const WINDOW_MS = 60 * 1000; // 1 minuto
 const ipAccessMap = new Map<string, { count: number; timestamp: number }>();
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // Allow only GET method
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  // Limit rate by IP Address
-  const ip = req.headers['x-forwarded-for']?.toString().split(',')[0] || req.socket.remoteAddress || 'unknown';
+  const ip =
+    req.headers['x-forwarded-for']?.toString().split(',')[0] ||
+    req.socket.remoteAddress ||
+    'unknown';
   const now = Date.now();
   const ipData = ipAccessMap.get(ip);
 
@@ -47,7 +63,7 @@ export default async function handler(
     const season = '2022';
 
     const cacheKey = `fixtures:${teamId}:${season}:${from}:${to}`;
-    const cachedData = getFromCache(cacheKey);
+    const cachedData = getFromCache<typeof limitedFixtures>(cacheKey);
     if (cachedData) {
       return res.status(200).json(cachedData);
     }
@@ -71,7 +87,7 @@ export default async function handler(
 
     const json = JSON.parse(responseText);
 
-    const fixtures = json.response.map((item: any) => {
+    const fixtures = (json.response as FixtureApiResponse[]).map((item) => {
       const fixture = item.fixture;
       const teams = item.teams;
       const venue = fixture.venue;
@@ -99,10 +115,11 @@ export default async function handler(
 
     const limitedFixtures = fixtures.slice(0, 3);
 
-    setToCache(cacheKey, limitedFixtures, 60 * 60 * 1000); // 1h
+    // TTL em segundos (1 hora = 3600 segundos)
+    setToCache(cacheKey, limitedFixtures, 3600);
 
     res.status(200).json(limitedFixtures);
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Server internal error.' });
   }
 }
