@@ -5,19 +5,17 @@ body,
 html {
     height: 100%;
     margin: 0;
-    font-family: 'Montserrat', sans-serif;
-    color: #fff;
+    font-family: Montserrat, sans-serif !important;
+    color: #fff
 }
 
 body {
-    background:
-        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
-        url('/background.jpg');
-    background-size: cover;
-    background-position: center;
-    padding: 32px;
-    display: flex;
-    justify-content: center;
-    backdrop-filter: blur(10px);
-    background-attachment: fixed;
+    background: linear-gradient(rgba(0, 0, 0, .5), rgba(0, 0, 0, .5)), url(/background.jpg) !important;
+    background-size: cover !important;
+    background-position: 50% !important;
+    padding: 32px !important;
+    display: flex !important;
+    justify-content: center !important;
+    backdrop-filter: blur(10px) !important;
+    background-attachment: fixed !important;
 }
