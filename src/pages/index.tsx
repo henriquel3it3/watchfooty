@@ -78,6 +78,7 @@ export default function Home() {
           value={search}
           onChange={setSearch}
           onFocus={() => {
+            window.scrollTo({ top: 0});
             if (fixtures.length > 0) {
               setFixtures([]);
               setSelectedTeam(null);

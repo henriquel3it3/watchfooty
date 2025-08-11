@@ -24,10 +24,11 @@ export default function FixturesList({ fixtures, teamName }: Props) {
               key={fixture.id}
               className="border border-[#FFB300] rounded-lg p-4 shadow-sm bg-[#123A6F]/95 text-gray-200 text-center transition duration-200"
             >
-              <div className="font-bold text-white text-lg mb-2">{home?.name} vs {away?.name}</div>
+              <div className="font-bold text-white text-base mb-2">{home?.name} vs {away?.name}</div>
               <div className="text-sm text-gray-300 leading-5">
                 📅 {new Date(fixture.starting_at).toLocaleString()}
-                <br />
+              </div>
+              <div className="mt-2 text-sm text-gray-300 leading-5">
                 📺 {tvs}
               </div>
             </li>

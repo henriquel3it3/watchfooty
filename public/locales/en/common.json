@@ -2,5 +2,6 @@
   "title": "Search to know where your club plays!",
   "search_placeholder": "Search for the club here...",
   "upcoming_matches": "Upcoming matches of ",
-  "without_transmition_label": "Broadcast to be confirmed"
+  "without_transmition_label": "Broadcast to be confirmed",
+  "info_banner_email": "Information or suggestions, contact "
 }

@@ -25,12 +25,6 @@ export default function SearchInput({ value, onChange, onFocus }: Props) {
         onFocus={onFocus}
         className="w-full h-12 pl-10 pr-14 bg-[#123A6F]/90 text-white placeholder-gray-300 rounded-xl border border-[#0D2C54] focus:outline-none focus:ring-2 focus:ring-[#FFB300] text-[15px] shadow-md transition duration-200"
       />
-
-      <button className="absolute top-1/2 right-2 -translate-y-1/2 w-8 h-8 bg-[#FFB300] rounded-full flex items-center justify-center hover:bg-[#FF8F00] transition duration-200">
-        <svg className="w-4 h-4 text-black" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.817-4.817A6 6 0 012 8z" clipRule="evenodd" />
-        </svg>
-      </button>
     </div>
   );
 }

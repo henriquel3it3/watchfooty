@@ -38,7 +38,11 @@ const securityHeaders = [
 
 const nextConfig = {
   reactStrictMode: true,
-  i18n,
+  i18n: {
+    locales: ['pt', 'en', 'de', 'fr', 'it', 'es', 'nl'],
+    defaultLocale: 'pt',
+    localeDetection: true,
+  },
   images: {
     domains: ['media.api-sports.io'],
   },
